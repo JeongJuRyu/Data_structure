@@ -43,6 +43,7 @@ static int _search(LIST *pList, NODE **pPre, NODE **pLoc, void *pArgu);
 tName *createName(char *str, int freq);
 void traverseList(LIST *pList, void(*callback)(const void *));
 void print_name(const void *dataPtr);
+
 ////////////////////////////////////////////////////////////////////////////////
 /* Allocates dynamic memory for a list head node and returns its address to caller
 return	head node pointer
@@ -63,7 +64,12 @@ LIST *createList(int(*compare)(const void *, const void *))
 
 /* Deletes all data in list and recycles memory
 */
+<<<<<<< HEAD
 void destroyList(LIST *pList, void(*callback)(void*))
+=======
+
+void destroyList(LIST *pList)
+>>>>>>> 3e85adcded460157452fed709ca18d6c07feea80
 {
 	NODE* pNode = pList->head;
 	NODE* pPre = NULL;
@@ -81,6 +87,7 @@ return	0 if overflow
 1 if successful
 2 if duplicated key
 */
+
 int addNode(LIST *pList, void *dataInPtr, void(*callback)(const void *, const void *)) //tName
 {
 	int result;
@@ -122,6 +129,7 @@ int addNode(LIST *pList, void *dataInPtr, void(*callback)(const void *, const vo
 		}
 	}
 }
+
 /* internal insert function
 inserts data into a new node
 return	1 if successful
@@ -186,6 +194,7 @@ static int _insert(LIST *pList, NODE *pPre, void *dataInPtr) {
 /* internal delete function
 deletes data from a list and saves the (deleted) data to dataOut
 */
+
 static void _delete(LIST *pList, NODE *pPre, NODE *pLoc, void **dataOutPtr) {
 	if (pPre == pList->head) {
 		pList->head = pPre->rlink;
