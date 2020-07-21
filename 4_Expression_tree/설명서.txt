@@ -1,1 +1,28 @@
-gd
+
+infinx expression은 tree를 traverse하면서 출력 한 것임.
+
+트리를 화면으로 출력
+
+결과값은 float로 계산함
+
+프로그램 종료는 컨트롤 d로
+
+
+1+2를 입력받으면 invalid 뜨도록
+
+TREE는 루트만 가리키는 구조체이다.
+
+destroyTree는 _destroy가 노드 다 해제해주면 마지막에 head만 해제해줌
+
+makeNode는 ch 받아서 메모리 할당, left right null로 초기화
+
+traverseTree는 중위 순회하면서 연산자가 나올때는 괄호열고 닫고 하면 됨. 쉬움 _traverse 사용하면 된다
+
+PrintTree 는 infix_print사용
+레벨이 1이면 탭 하나
+2면 탭 2개
+오른쪽 -> 자기자신 -> 왼쪽 순으로의 중위로 프린트구현
+
+evalPostfix는 후위표기식을 받아서 내부에서 계산해서 결과를 float으로 return하면 됨
+
+전체 코드는 300줄 넘길정도로 길진 않다.
