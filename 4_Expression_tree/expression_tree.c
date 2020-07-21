@@ -49,7 +49,9 @@ static NODE *_makeNode( char ch);
 	return	1 success
 			0 invalid postfix expression
 */
-int postfix2tree( char *expr, TREE *pTree);
+int postfix2tree(char *expr, TREE *pTree) {
+	
+}
 
 /* Print node in tree using inorder traversal
 */
@@ -112,10 +114,10 @@ int main( int argc, char **argv)
 	{
 		tree = createTree();
 		
-		//if (!tree)
+		if (!tree)
 		{
-		//	printf( "Cannot create tree\n");
-		//	return 100;
+			printf( "Cannot create tree\n");
+			return 100;
 		}
 		
 		// postfix expression -> expression tree
