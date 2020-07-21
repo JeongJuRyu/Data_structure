@@ -63,7 +63,7 @@ LIST *createList(int(*compare)(const void *, const void *))
 
 /* Deletes all data in list and recycles memory
 */
-void destroyList(LIST *pList)
+void destroyList(LIST *pList, void(*callback)(void*))
 {
 	NODE* pNode = pList->head;
 	NODE* pPre = NULL;
@@ -71,8 +71,7 @@ void destroyList(LIST *pList)
 		pPre = pNode;
 		pNode = pNode->rlink;
 		tName* pName = (tName*)(pPre->dataPtr);
-		free(pName->name);
-		free(pName);
+		callback(pName);
 		free(pPre);
 	}
 }
@@ -303,9 +302,10 @@ tName *createName(char *str, int freq) {
 
 /* Deletes all data in name structure and recycles memory
 */
-void destroyName(tName *pNode) {
-	free(pNode->name);
-	free(pNode);
+void destroyName(void *pNode) {
+	tName* temp_name = (tName*)pNode;
+	free(temp_name->name);
+	free(temp_name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -419,7 +419,7 @@ int main( int argc, char **argv)
 		switch( action)
 		{
 			case QUIT:
-				destroyList( list);
+				destroyList( list, destroyName);
 				return 0;
 			
 			case FORWARD_PRINT:
