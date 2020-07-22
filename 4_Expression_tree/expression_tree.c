@@ -26,7 +26,12 @@ typedef struct
 	return	head node pointer
 			NULL if overflow
 */
-TREE *createTree( void);
+TREE *createTree(void) {
+	NODE* root = (NODE*)malooc(sizeof(NODE));
+	root->left = NULL;
+	root->right = NULL;
+	return root;
+}
 
 /* Deletes all data in tree and recycles memory
 */
@@ -105,8 +110,7 @@ int main( int argc, char **argv)
 	
 	while (fscanf( stdin, "%s", expr) == 1)
 	{
-		// creates a null tree
-		//tree = createTree();
+		tree = createTree();
 		
 		//if (!tree)
 		{
