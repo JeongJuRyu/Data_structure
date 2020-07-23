@@ -27,7 +27,7 @@ typedef struct
 			NULL if overflow
 */
 TREE *createTree(void) {
-	NODE* root = (NODE*)malooc(sizeof(NODE));
+	NODE* root = (NODE*)malloc(sizeof(NODE));
 	root->left = NULL;
 	root->right = NULL;
 	return root;
@@ -43,7 +43,13 @@ static void _destroy( NODE *root);
 	return	node pointer
 			NULL if overflow
 */
-static NODE *_makeNode( char ch);
+static NODE *_makeNode(char ch) {
+	(NODE*)eNode = (NODE*)malloc(sizeof(NODE));
+	eNode->left = NULL;
+	eNode->right = NULL;
+	eNode->data = ch;
+	return eNode;
+}
 
 /* converts postfix expression to binary tree
 	return	1 success
