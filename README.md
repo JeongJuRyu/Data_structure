@@ -1,3 +1,3 @@
-<center># data_structure</center>
+# data_structure
 
 + assignment of Data_structure
