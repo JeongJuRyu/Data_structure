@@ -24,6 +24,12 @@ typedef struct
 	NODE* element[MAX_STACK_SIZE];
 	int top;
 }STACK;
+
+typedef struct
+{
+	float element[MAX_STACK_SIZE];
+	int top;
+}STACK_FLOAT;
 ////////////////////////////////////////////////////////////////////////////////
 // Prototype declarations
 
@@ -32,11 +38,8 @@ return	head node pointer
 NULL if overflow
 */
 TREE *createTree(void) {
-	TREE* pTree = (TREE*)malloic(sizeof(TREE));
+	TREE* pTree = (TREE*)malloc(sizeof(TREE));
 	if (pTree == NULL) return NULL;
-	pTree->root = (NODE*)malloc(sizeof(NODE));
-	pTree->root->left = NULL;
-	pTree->root->right = NULL;
 	return pTree;
 }
 
@@ -71,10 +74,11 @@ int postfix2tree(char *expr, TREE *pTree) {
 	STACK stack;
 	stack.top = -1;
 	int index = 0;
-	while (expr[index] != '\n') {
+	while (expr[index] != '\0') {
 		if (index == 0) {
 			if (!isdigit(expr[index])) return 0; //처음부터 연산자가 나오면 바로 invalid
 			stack.element[++stack.top] = _makeNode(expr[index]);
+			index++;
 			continue;
 		}
 		NODE* tempNode = _makeNode(expr[index]);
@@ -83,7 +87,8 @@ int postfix2tree(char *expr, TREE *pTree) {
 		}
 		else { // 연산자인 경우, invalid 체크 하고 valid한 경우면 트리 만듦
 			if (stack.top < 1) { //pop을 2번 해야하는데 충분하지 않다면
-				if (stack.top == 0) free(expr[index]);
+				if (stack.top == 0) free(stack.element[stack.top]);
+				free(tempNode);
 				return 0;
 			}
 			tempNode->right = stack.element[stack.top--];
@@ -93,8 +98,8 @@ int postfix2tree(char *expr, TREE *pTree) {
 		index++;
 	}
 	if (stack.top != 0) {
-		while (stack.top > 0) {
-			free(stack.element[stack.top--]);
+		while (stack.top >= 0) {
+			_destroy(stack.element[stack.top--]);
 		}
 		return 0;
 	}
@@ -110,19 +115,15 @@ void traverseTree(TREE *pTree);
 an implementation of ALGORITHM 6-6
 */
 static void _traverse(NODE *root) {
-	if (root == NULL) return;
-	
-	if (!isdigit(root->data)) {
-		printf('(');
-		_traverse(root->left);
-		printf(root->data);
-		_traverse(root->right);
-		printf(')');
-	}
-	else {
-		printf(root->data);
+	if (root == NULL) {
 		return;
 	}
+	if (!isdigit(root->data)) printf("(");
+	_traverse(root->left);
+	printf("%c", root->data);
+	_traverse(root->right);
+	if (!isdigit(root->data)) printf(")"); 
+	
 }
 
 /* Print tree using inorder right-to-left traversal
@@ -135,7 +136,7 @@ static void _infix_print(NODE *root, int level) {
 	if (root == NULL) return;
 	_infix_print(root->right, level + 1);
 	for (int i = 0; i < level; i++) printf("\t");
-	printf(root->data);
+	printf("%c\n", root->data);
 	_infix_print(root->left, level + 1);
 }
 
@@ -143,47 +144,59 @@ static void _infix_print(NODE *root, int level) {
 return	value of expression
 */
 float evalPostfix(char *expr) {
-	STACK stack;
+	STACK_FLOAT stack;
 	stack.top = -1;
 	int index = 0;
-	while (expr[index] != '\n') {
+	while (expr[index] != '\0') {
 		if (index == 0) {
 			if (!isdigit(expr[index])) return 0; //처음부터 연산자가 나오면 바로 invalid
-			stack.element[++stack.top] = _makeNode(expr[index]);
+			stack.element[++stack.top] = (float)(expr[index++]-'0');
 			continue;
 		}
-		NODE* tempNode = _makeNode(expr[index]);
 		if (isdigit(expr[index])) { //숫자인 경우 push
-			stack.element[++stack.top] = tempNode;
+			stack.element[++stack.top] = (float)(expr[index] - '0');
 		}
 		else { // 연산자인 경우, invalid 체크 하고 valid한 경우면 트리 만듦
 			if (stack.top < 1) { //pop을 2번 해야하는데 충분하지 않다면
-				if (stack.top == 0) free(expr[index]);
+				printf("빠꾸");
 				return 0;
 			}
-			tempNode->right = stack.element[stack.top--];
-			tempNode->left = stack.element[stack.top--];
-			stack.element[++stack.top] = tempNode;
+			float right = stack.element[stack.top--];
+			float left = stack.element[stack.top--];
+			float temp;
+			switch (expr[index]) {
+			case '+':
+				temp = left + right;
+				break;
+			case '-':
+				temp = left - right;
+				break;
+			case '*':
+				temp = left * right;
+				break;
+			case '/':
+				temp = left / right;
+				printf("%f %f %f",left, right, temp);
+				break;
+			default:
+				return 0; // 연산자를 잘못 입력한 경우 invalid
+			}
+			stack.element[++stack.top] = temp;
 		}
 		index++;
 	}
 	if (stack.top != 0) {
-		while (stack.top > 0) {
-			free(stack.element[stack.top--]);
-		}
 		return 0;
 	}
-	pTree->root = stack.element[0];
-	return 1;
-}
+	return stack.element[0];
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
-void destroyTree(TREE *pTree)
-{
+void destroyTree(TREE *pTree){
 	if (pTree)
 	{
-		//_destroy( pTree->root);
+		_destroy( pTree->root);
 	}
 
 	free(pTree);
@@ -192,7 +205,7 @@ void destroyTree(TREE *pTree)
 ////////////////////////////////////////////////////////////////////////////////
 void printTree(TREE *pTree)
 {
-	infix_print(pTree->root, 0);
+	_infix_print(pTree->root, 0);
 
 	return;
 }
@@ -222,31 +235,30 @@ int main(int argc, char **argv)
 			printf("Cannot create tree\n");
 			return 100;
 		}
-
 		// postfix expression -> expression tree
-		int ret = postfix2tree( expr, tree);
+		int ret = postfix2tree(expr, tree);
 		if (!ret)
 		{
-			fprintf( stdout, "invalid expression!\n");
-			destroyTree( tree);
-			fprintf( stdout, "\nInput an expression (postfix): ");
+			fprintf(stdout, "invalid expression!\n");
+			destroyTree(tree);
+			fprintf(stdout, "\nInput an expression (postfix): ");
 			continue;
 		}
 
 		// expression tree -> infix expression
 		fprintf(stdout, "\nInfix expression : ");
-		traverseTree( tree);
+		traverseTree(tree);
 
 		// print tree with right-to-left infix traversal
 		fprintf(stdout, "\n\nTree representation:\n");
 		printTree(tree);
 
 		// evaluate postfix expression
-		//float val = evalPostfix( expr);
-		//fprintf( stdout, "\nValue = %f\n", val);
+		float val = evalPostfix(expr);
+		fprintf(stdout, "\nValue = %f\n", val);
 
 		// destroy tree
-		//destroyTree( tree);
+		destroyTree(tree);
 
 		fprintf(stdout, "\nInput an expression (postfix): ");
 	}
