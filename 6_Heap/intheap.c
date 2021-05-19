@@ -11,6 +11,8 @@ typedef struct
 	int	capacity;
 } HEAP;
 
+static void _reheapDown(HEAP *heap, int index);
+static void _reheapUp(HEAP *heap, int index);
 /* Allocates memory for heap and returns address of heap head structure
 if memory overflow, NULL returned
 */
@@ -63,18 +65,26 @@ int heapDelete(HEAP *heap, int* dataOut) {
 	*dataOut = heap->heapArr[0];
 	heap->heapArr[0] = heap->heapArr[heap->last--];
 	if (heap->last == -1) return 0; // 1개를 삭제해서 heap이 빈 경우 0을 return
-	int index = 0;
-	int child = 0;
-	if (heap->last >= index * 2 + 1) child = index * 2 + 1;
-	if (heap->heapArr[index * 2 + 1] < heap->heapArr[index * 2 + 2]) child = index * 2 + 2;
-	while(index <= heap->last) {
-		int child = heap->heapArr[]
-	}
+	_reheapDown(heap, 0);
+	return 1;
 }
 
 /* Reestablishes heap by moving data in root down to its correct location in the heap
 */
-static void _reheapDown( HEAP *heap, int index);
+static void _reheapDown(HEAP *heap, int index) {
+	int child = 0;
+	if (heap->last >= index * 2 + 1) child = index * 2 + 1;
+	if (heap->last >= index * 2 + 2 && heap->heapArr[index * 2 + 1] < heap->heapArr[index * 2 + 2]) child = index * 2 + 2;
+	while (child != 0 && child <= heap->last) {
+		if (heap->heapArr[child] <= heap->heapArr[index]) break;
+		int temp = heap->heapArr[child];
+		heap->heapArr[child] = heap->heapArr[index];
+		heap->heapArr[index] = temp;
+		index = child;
+		child = child = index * 2 + 1;
+		if (heap->heapArr[index * 2 + 1] < heap->heapArr[index * 2 + 2]) child = index * 2 + 2;
+	}
+}
 
 /* Print heap array */
 void heapPrint( HEAP *heap)
@@ -108,20 +118,20 @@ int main(void)
 		// insert function call
 		heapInsert( heap, data);
 		
-		//heapPrint( heap);
+		heapPrint( heap);
  	}
 
-	//while (heap->last >= 0)
+	while (heap->last >= 0)
 	{
 		// delete function call
-		//heapDelete( heap, &data);
+		heapDelete( heap, &data);
 
 		printf( "Deleting %d: ", data);
 
-		//heapPrint( heap);
+		heapPrint( heap);
  	}
 	
-	//heapDestroy( heap);
+	heapDestroy( heap);
 	
 	return 0;
 }
