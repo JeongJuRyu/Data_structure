@@ -30,6 +30,10 @@ static NODE *_retrieve(NODE *root, char *key);
 static void _destroy(NODE *root);
 static NODE *_insert(NODE *root, NODE *newPtr);
 static void _traverse(NODE *root);
+static void _infix_print(NODE *root, int level);
+static NODE *rotateRight(NODE *root);
+static NODE *rotateLeft(NODE *root);
+static NODE *_makeNode(char* data);
 static int getHeight(NODE *root);
 /* Allocates dynamic memory for a AVL_TREE head node and returns its address to caller
 	return	head node pointer
@@ -70,6 +74,7 @@ int AVL_Insert(AVL_TREE *pTree, char *data) {
 	if (newNode == NULL) return 0;
 
 	pTree->root = _insert(pTree->root, newNode);
+	pTree->count++;
 	return 1;
 }
 /* internal function
@@ -77,32 +82,57 @@ int AVL_Insert(AVL_TREE *pTree, char *data) {
 	return	pointer to new root
 */
 static NODE *_insert( NODE *root, NODE *newPtr){
-	if (root == NULL) { // 첫 노드 삽입
-		root = newPtr;
+	NODE* nRoot;
+	if (root == NULL) {
+		root = newPtr; // 빈 자리에 노드를 추가
 		return root;
 	}
 	else {
-		if (strcmp(newPtr->data, root->data) >= 0) {
-			_insert(root->right, newPtr);
+		if (strcmp(newPtr->data,root->data) >= 0) { // 추가할 노드의 data가 root의 data보다 크거나 같은 경우
+			nRoot = _insert(root->right, newPtr); // 현재 노드의 오른쪽 자식노드를 대상으로 insert함수를 재귀적으로 호출
+			root->right = nRoot; // 최신화 된 nRoot를 root의 오른쪽노드로 삽입
 		}
-		else _insert(root->left, newPtr);
-
-		int leftHeight, rightHeight;
-
-		if (root->left == NULL) leftHeight = 0;
-		else leftHeight = getHeight(root->left);
-
-		if (root->right == NULL) rightHeight = 0;
-		else rightHeight = root->right->height;
-
-		int difference_height = leftHeight - rightHeight;
-
-		if (difference_height == 2) {
-
+		else { // 추가할 노드의 data가 root의 data보다 작은 경우
+			nRoot = _insert(root->left, newPtr); // 현재 노드의 왼쪽 자식노드로 삽입
+			root->left = nRoot; // 최신화 된 nRoot를 root의 왼쪽노드로 삽입
 		}
-		else if (difference_height == -2) {
+		root->height = getHeight(root); // root의 높이 최신화
+		if (getHeight(root) <= 2) { // root의 높이가 3 미만이면 재조정이 필요 없으니 root를 return하고 insert함수 종료
+			return root;
+		}
+		else { // 높이가 3 이상이므로 rebalance가 필요한지를 테스트
+			int bf = getHeight(root->left) - getHeight(root->right);
+			if (bf > 1) { // LH 상태일 때
+				if (getHeight(root->left->left) > getHeight(root->left->right)) // Left of left 상태일 때
+				{
+					nRoot = rotateRight(root);
+				}
+				else  // Right of left 상태일 때
+				{
+					nRoot = rotateLeft(root->left);
+					root->left = nRoot;
+					nRoot = rotateRight(root);
 
-		};
+				}
+			}
+			else if (bf < -1) { // RH 상태일 때
+				if (getHeight(root->right->left) < getHeight(root->right->right)) // Right of right 상태일 때
+				{
+
+					nRoot = rotateLeft(root);
+				}
+				else // Left of right 상태일 때
+				{
+					nRoot = rotateRight(root->right);
+					root->right = nRoot;
+					nRoot = rotateLeft(root);
+				}
+
+			}
+			else return root;
+		}
+		nRoot->height = getHeight(nRoot);
+		return nRoot;
 	}
 }
 
@@ -120,8 +150,9 @@ static NODE *_makeNode(char *data) {
 			NULL not found
 */
 char *AVL_Retrieve(AVL_TREE *pTree, char *key) {
-	char* result = _retrieve(pTree->root, key);
-	return result;
+	NODE* result = _retrieve(pTree->root, key);
+	if (result == NULL) return NULL;
+	return result->data;
 }
 
 /* internal function
@@ -131,11 +162,12 @@ char *AVL_Retrieve(AVL_TREE *pTree, char *key) {
 */
 static NODE *_retrieve(NODE *root, char *key) {
 	if (root == NULL) return NULL;
-	if (strcmp(key, root->data) == 0) return root->data;
-	if (strcmp(key, root->data) > 0) {
-		_retrieve(root->right, key);
-	}
-	else _retrieve(root->left, key);
+
+	if (strcmp(key, root->data) >= 1)
+		return _retrieve(root->right, key);
+	else if (strcmp(key, root->data) <= -1)
+		return _retrieve(root->left, key);
+	else return root;
 }
 
 /* Prints tree using inorder traversal
@@ -160,7 +192,7 @@ void printTree(AVL_TREE *pTree) {
 static void _infix_print(NODE *root, int level) {
 	if (root == NULL) return;
 	_infix_print(root->right, level + 1);
-	for (int i = 0; i < level; i++) printf('\t');
+	for (int i = 0; i < level; i++) printf("\t");
 	printf("%s\n", root->data);
 	_infix_print(root->left, level + 1);
 }
@@ -169,11 +201,15 @@ static void _infix_print(NODE *root, int level) {
 	return	height of the (sub)tree from the node (root)
 */
 static int getHeight(NODE *root) {
-	int temp1 = -1;
-	int temp2 = -1;
-	if (root->left != NULL) temp1 = root->left->height;
-	if (root->right != NULL) temp2 = root->right->height;
-	return max(temp1, temp2);
+	int lh, rh;
+	if (root == NULL) return 0; // NULL의 높이는 0
+	if (root->left == NULL) lh = 0; // 왼쪽 서브트리의 높이는 0
+	else lh = root->left->height; // 왼쪽 서브트리가 존재하면 이 노드의 높이를 저장
+	if (root->right == NULL) rh = 0; // 오른쪽 서브트리의 높이는 0
+	else rh = root->right->height;// 오른쪽 서브트리가 존재하면 이 노드의 높이를 저장
+
+	if (lh > rh) return lh + 1;
+	return rh + 1;
 }
 
 /* internal function
@@ -184,8 +220,9 @@ static int getHeight(NODE *root) {
 static NODE *rotateRight(NODE *root) {
 	NODE* pNode = root;
 	NODE* cNode = root->left;
-	pNode->right = cNode->left;
-	cNode->left = pNode;
+
+	pNode->left = cNode->right;
+	cNode->right = pNode;
 
 	cNode->height = getHeight(cNode);
 	pNode->height = getHeight(pNode);
@@ -201,6 +238,7 @@ static NODE *rotateRight(NODE *root) {
 static NODE *rotateLeft(NODE *root) {
 	NODE* pNode = root;
 	NODE* cNode = root->right;
+
 	pNode->right = cNode->left;
 	cNode->left = pNode;
 
@@ -248,7 +286,7 @@ int main( int argc, char **argv)
 
 #if SHOW_STEP
 		fprintf( stdout, "Tree representation:\n");
-		//printTree( tree);
+		printTree( tree);
 #endif
 	}
 	
@@ -259,12 +297,12 @@ int main( int argc, char **argv)
 
 	// inorder traversal
 	fprintf( stdout, "Inorder traversal: ");
-	//AVL_Traverse( tree);
+	AVL_Traverse( tree);
 	fprintf( stdout, "\n");
 
 	// print tree with right-to-left infix traversal
 	fprintf( stdout, "Tree representation:\n");
-	//printTree(tree);
+	printTree(tree);
 #endif
 	fprintf( stdout, "Height of tree: %d\n", tree->root->height);
 	fprintf( stdout, "# of nodes: %d\n", tree->count);
